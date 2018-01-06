@@ -13,10 +13,10 @@ import {
 import { myKeyBindingFn } from "./keybindings";
 
 const regex = {
-  task: /(\[\]|\[(.+)\]).+/g,
-  emptyTask: /(\[\]|\[ \]).+/g,
-  completedTask: /\[√\].+/g,
-  cancelledTask: /\[X\].+/g,
+  task: /(\[\]|\[(.+)\]).+$/g,
+  emptyTask: /(\[\]|\[ \]).+$/g,
+  completedTask: /\[√\].+$/g,
+  cancelledTask: /\[X\].+$/g,
   header: /\#\s(.+)/g
 };
 
@@ -141,16 +141,22 @@ class App extends Component {
     const tasks = blocks.map(this.getTasksInBlock).filter(b => b.length > 0);
     return tasks;
   };
+  testRegex = (regex, text) => {
+    const result = regex.test(text);
+    regex.lastIndex = 0;
+    return result;
+  };
+
   getTaskType = row => {
-    if (regex.emptyTask.test(row)) return "empty";
-    if (regex.completedTask.test(row)) return "completed";
-    if (regex.cancelledTask.test(row)) return "cancelled";
+    if (this.testRegex(regex.emptyTask, row)) return "empty";
+    if (this.testRegex(regex.completedTask, row)) return "completed";
+    if (this.testRegex(regex.cancelledTask, row)) return "cancelled";
   };
   getTasksInBlock = block => {
     const rows = block.split("\n");
     return rows.reduce((acc, row) => {
       /* Need to execute a regex between each invocation. Not sure why */
-      if (regex.task.test(row) === null) {
+      if (!this.testRegex(regex.task, row)) {
         return acc;
       }
       const text = row.substring(row.indexOf("] ") + 2),
