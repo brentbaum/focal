@@ -1,16 +1,9 @@
-"use strict";
-import React, { Component } from "react";
-import logo from "./logo.svg";
+import {decorator, TaskEditor} from "./Editor";
+import React, {Component} from "react";
+import {TaskList} from "./TaskList";
 import "./App.css";
-import {
-  convertFromRaw,
-  convertToRaw,
-  CompositeDecorator,
-  Editor,
-  EditorState,
-  RichUtils
-} from "draft-js";
-import { myKeyBindingFn } from "./keybindings";
+import {convertFromRaw, convertToRaw, EditorState} from "draft-js";
+import "draft-js/dist/Draft.css";
 
 const regex = {
   task: /(\[\]|\[(.+)\]).+$/g,
@@ -20,81 +13,13 @@ const regex = {
   header: /\#\s(.+)/g
 };
 
-const commands = {
-  OL: "autolist-ordered",
-  UL: "autolist-unordered"
-};
-
-const blockTypes = {
-  UL: "unordered-list-item",
-  OL: "ordered-list-item",
-  TASK: "ordered-list-item",
-  UNSTYLED: "unstyled"
-};
-
-function findWithRegex(regex, contentBlock, callback) {
-  const text = contentBlock.getText();
-  let matchArr, start;
-  while ((matchArr = regex.exec(text)) !== null) {
-    start = matchArr.index;
-    callback(start, start + matchArr[0].length);
-  }
-}
-
-const findLinkEntities = (contentBlock, callback, contentState) => {
-  contentBlock.findEntityRanges(character => {
-    const entityKey = character.getEntity();
-    return (
-      entityKey !== null &&
-      contentState.getEntity(entityKey).getType() === "LINK"
-    );
-  }, callback);
-};
-
-const Link = props => {
-  const { url } = props.contentState.getEntity(props.entityKey).getData();
-  return (
-    <a href={url} style={styles.link}>
-      {props.children}
-    </a>
+const saveText = editorState => {
+  debugger;
+  localStorage.setItem(
+    "editorState",
+    JSON.stringify(convertToRaw(editorState.getCurrentContent()))
   );
 };
-
-const findRegex = re => (contentBlock, callback, contentState) => {
-  findWithRegex(re, contentBlock, callback);
-};
-
-const TaskItem = ({ contentState, decoratedText, entityKey, ...props }) => {
-  let style =
-    {
-      completed: styles.completedTask,
-      cancelled: styles.cancelledTask
-    }[props.type] || styles.task;
-  return (
-    <div {...props} style={style} data-offset-key={props.offsetKey}>
-      {props.children}
-    </div>
-  );
-};
-
-const decorator = new CompositeDecorator([
-  {
-    strategy: findLinkEntities,
-    component: Link
-  },
-  {
-    strategy: findRegex(regex.completedTask),
-    component: props => <TaskItem {...props} type="completed" />
-  },
-  {
-    strategy: findRegex(regex.cancelledTask),
-    component: props => <TaskItem {...props} type="cancelled" />
-  },
-  {
-    strategy: findRegex(regex.task),
-    component: props => <TaskItem {...props} type="empty" />
-  }
-]);
 
 const getSavedState = () => {
   const state = localStorage.getItem("editorState");
@@ -106,40 +31,52 @@ const getSavedState = () => {
   return EditorState.createEmpty(decorator);
 };
 
-class App extends Component {
-  state = { editorState: getSavedState() };
-  setDomEditorRef = ref => (this.domEditor = ref);
+export default class App extends Component {
+  state = {editorState: getSavedState()};
   onChange = editorState => {
-    this.setState({ editorState });
+    this.setState({editorState});
   };
-  handleKeyCommand = command => {
-    if (command === "myeditor-save") {
-      localStorage.setItem(
-        "editorState",
-        JSON.stringify(convertToRaw(this.state.editorState.getCurrentContent()))
+
+  getTaskLists = editorState => {
+    const blockMap = editorState.getCurrentContent().getBlockMap();
+    const [_, sections] = blockMap
+      .map(({text}, blockKey) => {
+        if (this.testRegex(regex.task, text)) {
+          const taskText = text.substring(text.indexOf("] ") + 2);
+          return {
+            text: taskText,
+            type: this.getTaskType(text),
+            task: true,
+            blockKey
+          };
+        }
+        if (text.trim() === "") {
+          return {
+            empty: true,
+            blockKey
+          };
+        }
+        return {
+          text: regex.text,
+          blockKey
+        };
+      })
+      .reduce(
+        ([count, acc], item) => {
+          if (item.empty) {
+            return [count + 1, acc];
+          }
+          const splitAcc = count > 1 ? [[]].concat(acc) : acc;
+          const [head, ...rest] = splitAcc;
+          if (item.task) {
+            const updatedHead = head.concat([item]);
+            return [0, [updatedHead, ...rest]];
+          }
+          return [0, splitAcc];
+        },
+        [0, [[]]]
       );
-      return "handled";
-    }
-    if (command === "myeditor-bold") {
-      console.log("BOLD");
-      const selection = this.state.editorState.getSelection();
-      const nextState = RichUtils.toggleInlineStyle(
-        this.state.editorState,
-        "BOLD"
-      );
-      this.onChange(nextState);
-    }
-    return "not-handled";
-  };
-  componentDidMount() {
-    this.domEditor.focus();
-  }
-  getTaskLists = () => {
-    const text = this.state.editorState.getCurrentContent().getPlainText();
-    console.log(text);
-    const blocks = text.split("\n\n\n");
-    const tasks = blocks.map(this.getTasksInBlock).filter(b => b.length > 0);
-    return tasks;
+    return sections.filter(a => a.length > 0);
   };
   testRegex = (regex, text) => {
     const result = regex.test(text);
@@ -152,21 +89,6 @@ class App extends Component {
     if (this.testRegex(regex.completedTask, row)) return "completed";
     if (this.testRegex(regex.cancelledTask, row)) return "cancelled";
   };
-  getTasksInBlock = block => {
-    const rows = block.split("\n");
-    return rows.reduce((acc, row) => {
-      /* Need to execute a regex between each invocation. Not sure why */
-      if (!this.testRegex(regex.task, row)) {
-        return acc;
-      }
-      const text = row.substring(row.indexOf("] ") + 2),
-        task = {
-          text,
-          type: this.getTaskType(row)
-        };
-      return acc.concat([task]);
-    }, []);
-  };
 
   getTopTask = lists => {
     if (lists.length === 0) {
@@ -177,56 +99,27 @@ class App extends Component {
   };
 
   render() {
-    const taskLists = this.getTaskLists(), // []
+    const {editorState} = this.state;
+    const taskLists = this.getTaskLists(editorState), // []
       topTask = this.getTopTask(taskLists);
     return (
-      <div className="App" onClick={() => this.domEditor.focus()}>
+      <div className="App">
         <header className="App-header">
           <span>{topTask}</span>
         </header>
         <div className="App-content">
           <div className="App-editor">
-            <Editor
-              editorState={this.state.editorState}
-              onChange={this.onChange}
-              onBlur={this.saveText}
-              onTab={e => e.preventDefault()}
-              handleKeyCommand={this.handleKeyCommand}
-              keyBindingFn={myKeyBindingFn}
-              ref={this.setDomEditorRef}
+            <TaskEditor
+              save={() => saveText(editorState)}
+              editorState={editorState}
+              onChange={editorState => this.onChange(editorState)}
             />
-            {JSON.stringify(taskLists)}
+          </div>
+          <div style={{width: 300}}>
+            {taskLists.map(list => <TaskList taskList={list} />)}
           </div>
         </div>
       </div>
     );
   }
 }
-
-const flexAlign = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "flex-start"
-};
-
-const styles = {
-  link: {
-    color: "#3b5998",
-    textDecoration: "underline"
-  },
-  task: {
-    ...flexAlign,
-    color: "#277cd8"
-  },
-  completedTask: {
-    ...flexAlign,
-    color: "#23d377"
-  },
-  cancelledTask: {
-    ...flexAlign,
-    color: "#555",
-    textDecoration: "line-through"
-  }
-};
-
-export default App;

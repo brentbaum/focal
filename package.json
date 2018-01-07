@@ -17,6 +17,24 @@
   "devDependencies": {
     "babel-eslint": "^8.1.2",
     "electron": "^1.7.10",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-config-react-app": "^2.0.1",
+    "eslint-plugin-prettier": "^2.4.0",
     "prettier-eslint": "^8.7.0"
+  },
+  "eslintConfig": {
+    "extends": ["react-app", "prettier"],
+    "plugins": ["prettier"],
+    "rules": {
+      "prettier/prettier": [
+        "warn",
+        {
+          "bracketSpacing": false,
+          "jsxBracketSameLine": true
+        }
+      ],
+      "jsx-a11y/href-no-hash": 0,
+      "jsx-a11y/anchor-is-valid": [1]
+    }
   }
 }

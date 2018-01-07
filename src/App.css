@@ -56,3 +56,8 @@ body,
     transform: rotate(360deg);
   }
 }
+
+.public-DraftStyleDefault-ol,
+.public-DraftStyleDefault-ul {
+  margin: 0;
+}
