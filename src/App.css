@@ -2,7 +2,8 @@ html,
 body,
 #root,
 .App {
-  position: absolute;
+  overflow: hidden;
+  position: fixed;
   top: 0;
   bottom: 0;
   right: 0;
@@ -41,6 +42,7 @@ body,
   flex: 1;
   background: #f8f8f9;
   text-align: left;
+  overflow: auto;
 }
 
 .App-intro {
@@ -57,7 +59,34 @@ body,
   }
 }
 
-.public-DraftStyleDefault-ol,
-.public-DraftStyleDefault-ul {
+.App .public-DraftStyleDefault-ol,
+.App .public-DraftStyleDefault-ul {
   margin: 0;
+}
+
+.task-item {
+  padding: 8px 0;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  user-select: none;
+  cursor: pointer;
+}
+
+.task-item:hover {
+  background: #f8f8f9;
+}
+
+.task-item--status {
+  padding-right: 8px;
+}
+
+.task-list-title {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-bottom: 4px;
+  padding-left: 24px;
+  text-align: left;
+  cursor: pointer;
 }

@@ -6,14 +6,19 @@
     "draft-js": "^0.10.4",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-scripts": "1.0.17"
+    "react-scripts": "1.0.17",
+    "recompose": "^0.26.0",
+    "semantic-ui-css": "^2.2.12",
+    "semantic-ui-react": "^0.77.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron ."
   },
+  "main": "src/electron-starter.js",
   "devDependencies": {
     "babel-eslint": "^8.1.2",
     "electron": "^1.7.10",
@@ -23,8 +28,13 @@
     "prettier-eslint": "^8.7.0"
   },
   "eslintConfig": {
-    "extends": ["react-app", "prettier"],
-    "plugins": ["prettier"],
+    "extends": [
+      "react-app",
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
       "prettier/prettier": [
         "warn",
@@ -34,7 +44,9 @@
         }
       ],
       "jsx-a11y/href-no-hash": 0,
-      "jsx-a11y/anchor-is-valid": [1]
+      "jsx-a11y/anchor-is-valid": [
+        1
+      ]
     }
   }
 }

@@ -83,52 +83,8 @@ export const decorator = new CompositeDecorator([
   }
 ]);
 
-const insertCharacter = (editorState, character) => {
-  let content = editorState.getCurrentContent();
-
-  // Retrieve the focused block
-  const selection = editorState.getSelection();
-  const length = selection.getStartOffset() - selection.getEndOffset();
-
-  if (length === 0) {
-    content = Modifier.insertText(content, selection, character);
-  }
-  let nextState = EditorState.push(editorState, content);
-  nextState = EditorState.forceSelection(
-    nextState,
-    content.getSelectionAfter()
-  );
-  return nextState;
-};
-
-const toggleListState = editorState => {
-  return RichUtils.toggleBlockType(editorState, "unordered-list-item");
-};
-
 export class TaskEditor extends Component {
   setDomEditorRef = ref => (this.domEditor = ref);
-  handleKeyCommand = command => {
-    const {editorState, onChange} = this.props;
-    if (command === "myeditor-save") {
-      localStorage.setItem(
-        "editorState",
-        JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-      );
-      return "handled";
-    }
-    if (command === "myeditor-bold") {
-      const nextState = RichUtils.toggleInlineStyle(editorState, "BOLD");
-      this.props.onChange(nextState);
-    }
-    if (command === "myeditor-entity-check") {
-      onChange(insertCharacter(editorState, " "));
-    }
-    if (command === "myeditor-list-toggle") {
-      const nextState = toggleListState(editorState);
-      onChange(nextState);
-    }
-    return "not-handled";
-  };
   componentDidMount() {
     this.domEditor.focus();
   }
@@ -162,7 +118,7 @@ export class TaskEditor extends Component {
         onChange={onChange}
         onBlur={save}
         onTab={e => this.handleTab(e)}
-        handleKeyCommand={this.handleKeyCommand}
+        handleKeyCommand={this.props.handleKeyCommand}
         keyBindingFn={myKeyBindingFn}
         ref={this.setDomEditorRef}
       />
@@ -187,7 +143,7 @@ const styles = {
   },
   completedTask: {
     ...flexAlign,
-    color: "#23d377"
+    color: "#168c2c"
   },
   cancelledTask: {
     ...flexAlign,
