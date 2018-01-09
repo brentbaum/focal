@@ -116,7 +116,6 @@ export class TaskEditor extends Component {
       <Editor
         editorState={editorState}
         onChange={onChange}
-        onBlur={save}
         onTab={e => this.handleTab(e)}
         handleKeyCommand={this.props.handleKeyCommand}
         keyBindingFn={myKeyBindingFn}

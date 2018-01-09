@@ -1,4 +1,5 @@
 import {decorator, TaskEditor} from "./Editor";
+import {writeFile} from "./db";
 import React, {Component} from "react";
 import {TaskList} from "./TaskList";
 import {
@@ -21,12 +22,24 @@ const regex = {
   header: /\#\s(.+)/g
 };
 
-const saveText = editorState => {
+const inBrowser = true;
+
+const persist = editorState => {
   debugger;
-  localStorage.setItem(
-    "editorState",
-    JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-  );
+  if (inBrowser) {
+    writeFile(editorState)
+      .then(result => {
+        console.log(result);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  } else {
+    localStorage.setItem(
+      "editorState",
+      JSON.stringify(convertToRaw(editorState.getCurrentContent()))
+    );
+  }
 };
 
 const getSavedState = () => {
@@ -147,7 +160,7 @@ export default class App extends Component {
 
   getTopTask = lists => {
     if (lists.length === 0) {
-      return "Get after it";
+      return "Get after it.";
     }
     const [head, ...rest] = lists;
     const f = head.find(task => task.type === "empty");
@@ -194,10 +207,7 @@ export default class App extends Component {
   handleKeyCommand = command => {
     const {editorState} = this.state;
     if (command === "myeditor-save") {
-      localStorage.setItem(
-        "editorState",
-        JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-      );
+      perist(editorState);
       return "handled";
     }
     if (command === "myeditor-bold") {
@@ -229,15 +239,15 @@ export default class App extends Component {
           <span>{topTask}</span>
         </header>
         <div className="App-content">
-          <div className="App-editor" style={{flex: 4}}>
+          <div className="App-editor" style={{flex: 5}}>
             <TaskEditor
-              save={() => saveText(editorState)}
+              save={() => persist(editorState)}
               editorState={editorState}
               onChange={editorState => this.onChange(editorState)}
               handleKeyCommand={this.handleKeyCommand}
             />
           </div>
-          <div style={{minWidth: 360, flex: 2}}>
+          <div style={{minWidth: 280, flex: 2}}>
             {taskLists.map((list, index) => (
               <TaskList
                 isActive={index === 0}
