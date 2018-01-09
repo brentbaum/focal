@@ -23,6 +23,7 @@ body,
 }
 
 .App-header {
+  -webkit-app-region: drag;
   background-color: #222;
   padding: 50px;
   color: white;
@@ -37,8 +38,7 @@ body,
 }
 
 .App-editor {
-  max-width: 960px;
-  padding: 8px 24px;
+  padding: 8px 32px;
   flex: 1;
   background: #f8f8f9;
   text-align: left;

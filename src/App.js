@@ -229,7 +229,7 @@ export default class App extends Component {
           <span>{topTask}</span>
         </header>
         <div className="App-content">
-          <div className="App-editor">
+          <div className="App-editor" style={{flex: 4}}>
             <TaskEditor
               save={() => saveText(editorState)}
               editorState={editorState}
@@ -237,7 +237,7 @@ export default class App extends Component {
               handleKeyCommand={this.handleKeyCommand}
             />
           </div>
-          <div style={{width: 360}}>
+          <div style={{minWidth: 360, flex: 2}}>
             {taskLists.map((list, index) => (
               <TaskList
                 isActive={index === 0}
