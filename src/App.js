@@ -1,5 +1,5 @@
 import {decorator, TaskEditor} from "./Editor";
-import {writeFile} from "./db";
+import {writeFile, readFile} from "./db";
 import React, {Component} from "react";
 import {TaskList} from "./TaskList";
 import {
@@ -22,12 +22,14 @@ const regex = {
   header: /\#\s(.+)/g
 };
 
-const inBrowser = true;
+const inBrowser = !!(window && window.process && window.process.type);
 
 const persist = editorState => {
-  debugger;
-  if (inBrowser) {
-    writeFile(editorState)
+  const stringifiedState = JSON.stringify(
+    convertToRaw(editorState.getCurrentContent())
+  );
+  if (!inBrowser) {
+    writeFile(stringifiedState)
       .then(result => {
         console.log(result);
       })
@@ -35,21 +37,34 @@ const persist = editorState => {
         console.error(err);
       });
   } else {
-    localStorage.setItem(
-      "editorState",
-      JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-    );
+    localStorage.setItem("editorState", stringifiedState);
   }
 };
 
-const getSavedState = () => {
-  const state = localStorage.getItem("editorState");
-  if (state)
-    return EditorState.createWithContent(
-      convertFromRaw(JSON.parse(state)),
-      decorator
-    );
+const hydrateState = stateStr => {
+  if (stateStr) {
+    const state = JSON.parse(stateStr);
+    const content = convertFromRaw(state);
+    return EditorState.createWithContent(content, decorator);
+  }
   return EditorState.createEmpty(decorator);
+};
+
+const getSavedState = () => {
+  return new Promise((resolve, reject) => {
+    if (!inBrowser) {
+      readFile()
+        .then(result => {
+          resolve(hydrateState(result));
+        })
+        .catch(() => {
+          resolve(hydrateState());
+        });
+    } else {
+      const state = localStorage.getItem("editorState");
+      resolve(hydrateState(state));
+    }
+  });
 };
 
 const testRegex = (regex, text) => {
@@ -93,10 +108,11 @@ const getTaskLists = editorState => {
         };
       }
       return {
-        text: regex.text,
+        text,
         blockKey
       };
     })
+    /* Split into task lists based off white space */
     .reduce(
       ([count, acc], item) => {
         if (item.empty) {
@@ -104,15 +120,22 @@ const getTaskLists = editorState => {
         }
         const splitAcc = count > 1 ? [[]].concat(acc) : acc;
         const [head, ...rest] = splitAcc;
-        if (item.task) {
+        if (head) {
           const updatedHead = head.concat([item]);
           return [0, [updatedHead, ...rest]];
         }
         return [0, splitAcc];
       },
-      [0, [[]]]
+      [0, []]
     );
-  return sections.filter(a => a.length > 0);
+
+  return sections
+    .map(items => {
+      const title =
+        items.length > 0 && !items[0].task ? items[0].text : "Tasks";
+      return {title, items: items.filter(i => i.task)};
+    })
+    .filter(a => a.items.length > 0);
 };
 
 const getNextTaskType = taskType =>
@@ -152,19 +175,24 @@ const insertCharacter = (editorState, character) => {
 const toggleListState = editorState => {
   return RichUtils.toggleBlockType(editorState, "unordered-list-item");
 };
+
+const getTopTask = lists => {
+  if (lists.length === 0) {
+    return "Get after it.";
+  }
+  const [head, ...rest] = lists;
+  const f = head.items.find(task => task.type === "empty");
+  return f ? f.text : getTopTask(rest);
+};
 export default class App extends Component {
-  state = {editorState: getSavedState()};
+  state = {editorState: EditorState.createEmpty()};
+  componentWillMount() {
+    getSavedState().then(state => {
+      this.setState({editorState: state});
+    });
+  }
   onChange = editorState => {
     this.setState({editorState});
-  };
-
-  getTopTask = lists => {
-    if (lists.length === 0) {
-      return "Get after it.";
-    }
-    const [head, ...rest] = lists;
-    const f = head.find(task => task.type === "empty");
-    return f ? f.text : this.getTopTask(rest);
   };
 
   /* Change text from [ ] => [√] */
@@ -207,7 +235,7 @@ export default class App extends Component {
   handleKeyCommand = command => {
     const {editorState} = this.state;
     if (command === "myeditor-save") {
-      perist(editorState);
+      persist(editorState);
       return "handled";
     }
     if (command === "myeditor-bold") {
@@ -232,7 +260,7 @@ export default class App extends Component {
   render() {
     const {editorState} = this.state;
     const taskLists = getTaskLists(editorState), // []
-      topTask = this.getTopTask(taskLists);
+      topTask = getTopTask(taskLists);
     return (
       <div className="App">
         <header className="App-header">

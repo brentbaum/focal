@@ -1,13 +1,19 @@
 //const fs = require("fs");
-const fs = require("fs");
+const electron = window.require("electron");
+const fs = electron.remote.require("fs");
+const os = electron.remote.require("os");
+const zlib = electron.remote.require("zlib");
+console.log(zlib);
 
+const appDir = os.homedir() + "/.get-after-it";
 const fileName = "log";
 
-export const writeFile = editorState => {
-  const content = JSON.stringify(editorState);
-
+export const writeFile = content => {
   return new Promise((resolve, reject) => {
-    fs.writeFile("~/.get-after-it/" + fileName, content, "utf8", function(err) {
+    if (!fs.existsSync(appDir)) {
+      fs.mkdirSync(appDir);
+    }
+    fs.writeFile(`${appDir}/${fileName}`, content, "utf8", function(err) {
       if (err) {
         reject(err);
         return console.log(err);
@@ -21,7 +27,7 @@ export const writeFile = editorState => {
 
 export const readFile = () => {
   return new Promise((resolve, reject) => {
-    fs.readFile("~/.get-after-it/" + fileName, "utf8", function(err, data) {
+    fs.readFile(`${appDir}/${fileName}`, "utf8", function(err, data) {
       if (err) {
         reject(err);
         return console.log(err);

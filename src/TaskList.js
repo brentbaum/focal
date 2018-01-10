@@ -12,10 +12,10 @@ export const TaskListComponent = ({
   return (
     <ul style={{listStyle: "none", marginTop: 8}}>
       <li className="task-list-title" onClick={() => toggleActive(!isActive)}>
-        Tasks ({taskList.length})
+        {taskList.title} ({taskList.items.length})
       </li>
       {isActive &&
-        taskList.filter(task => task.type !== "incomplete").map(task => (
+        taskList.items.filter(task => task.type !== "incomplete").map(task => (
           <li
             onClick={() => onTaskClick(task)}
             className="task-item"
