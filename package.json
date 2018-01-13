@@ -5,6 +5,7 @@
   "dependencies": {
     "draft-js": "^0.10.4",
     "foreman": "^2.0.0",
+    "ramda": "^0.25.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-scripts": "1.0.17",
@@ -19,8 +20,7 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "build-app": "yarn run build && yarn run package",
-    "package":
-      "npx electron-packager ./ GetAfterIt --version=0.0.1 --out=./packaged --overwrite --platform=darwin",
+    "package": "npx electron-packager ./ GetAfterIt --version=0.0.1 --out=./packaged --overwrite --platform=darwin",
     "start-electron": "nf start"
   },
   "main": "src/electron-starter.js",
@@ -35,8 +35,13 @@
   },
   "homepage": "./",
   "eslintConfig": {
-    "extends": ["react-app", "prettier"],
-    "plugins": ["prettier"],
+    "extends": [
+      "react-app",
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
       "prettier/prettier": [
         "warn",
@@ -46,7 +51,9 @@
         }
       ],
       "jsx-a11y/href-no-hash": 0,
-      "jsx-a11y/anchor-is-valid": [1]
+      "jsx-a11y/anchor-is-valid": [
+        1
+      ]
     }
   }
 }

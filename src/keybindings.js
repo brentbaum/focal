@@ -6,7 +6,8 @@ let history = [];
 export const myKeyBindingFn = e => {
   history.push(e.keyCode);
   history = history.length > 10 ? history.slice(1) : history;
-  if (e.keyCode === 9) {
+
+  if (e.keyCode === 9 /* TAB key */) {
     e.preventDefault();
     return "myeditor-tab";
   }
@@ -15,11 +16,11 @@ export const myKeyBindingFn = e => {
     return "myeditor-save";
   }
 
-  if (e.keyCode === 66 /* `S` key */ && hasCommandModifier(e)) {
+  if (e.keyCode === 66 /* `B` key */ && hasCommandModifier(e)) {
     return "myeditor-bold";
   }
 
-  if (e.keyCode === 222 /* `S` key */ && hasCommandModifier(e)) {
+  if (e.keyCode === 222 /* `'` key */ && hasCommandModifier(e)) {
     return "myeditor-task-toggle";
   }
 
@@ -30,6 +31,17 @@ export const myKeyBindingFn = e => {
 
   if (e.keyCode === 13 && hasCommandModifier(e)) {
     return "myeditor-return";
+  }
+
+  if (e.keyCode === 38 && hasCommandModifier(e)) {
+    debugger;
+    e.stopPropagation();
+    return "myeditor-swap-up";
+  }
+  if (e.keyCode === 40 && hasCommandModifier(e)) {
+    debugger;
+    e.stopPropagation();
+    return "myeditor-swap-down";
   }
 
   if (e.keyCode === 32) {

@@ -6,10 +6,13 @@ import {
   Modifier,
   Editor,
   EditorState,
-  RichUtils
+  RichUtils,
+  KeyBindingUtil
 } from "draft-js";
 import "draft-js/dist/Draft.css";
 import {myKeyBindingFn} from "./keybindings";
+import {swapBlocks} from "./utils";
+const {hasCommandModifier} = KeyBindingUtil;
 
 const regex = {
   task: /(\[\]|\[(.+)\]).+$/g,
@@ -118,6 +121,18 @@ export class TaskEditor extends Component {
         onChange={onChange}
         onTab={e => this.handleTab(e)}
         handleKeyCommand={this.props.handleKeyCommand}
+        onUpArrow={e => {
+          if (hasCommandModifier(e)) {
+            e.preventDefault();
+            onChange(swapBlocks(editorState, "up"));
+          }
+        }}
+        onDownArrow={e => {
+          if (hasCommandModifier(e)) {
+            e.preventDefault();
+            onChange(swapBlocks(editorState, "down"));
+          }
+        }}
         keyBindingFn={myKeyBindingFn}
         ref={this.setDomEditorRef}
       />

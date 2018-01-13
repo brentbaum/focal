@@ -1,4 +1,6 @@
 import {decorator, TaskEditor} from "./Editor";
+import {getTopTask, getTaskLists} from "./taskUtils";
+import * as R from "ramda";
 import {writeFile, readFile} from "./db";
 import React, {Component} from "react";
 import {TaskList} from "./TaskList";
@@ -13,14 +15,7 @@ import {
 import "draft-js/dist/Draft.css";
 import "semantic-ui-css/semantic.min.css";
 import "./App.css";
-
-const regex = {
-  task: /(\[\]|\[(.+)\]).+$/g,
-  emptyTask: /(\[\]|\[ \]).+$/g,
-  completedTask: /\[√\].+$/g,
-  cancelledTask: /\[X\].+$/g,
-  header: /\#\s(.+)/g
-};
+import {insertNewBlock, swapBlocks} from "./utils";
 
 const inBrowser = !!(window && window.process && window.process.type);
 
@@ -67,93 +62,6 @@ const getSavedState = () => {
   });
 };
 
-const testRegex = (regex, text) => {
-  const result = regex.test(text);
-  regex.lastIndex = 0;
-  return result;
-};
-
-const getTaskType = row => {
-  if (testRegex(regex.emptyTask, row)) return "empty";
-  if (testRegex(regex.completedTask, row)) return "completed";
-  if (testRegex(regex.cancelledTask, row)) return "cancelled";
-  return "not-task";
-};
-
-const getTaskText = text => {
-  const index = text.indexOf("] ");
-  if (index > -1) {
-    return text.substring(text.indexOf("] ") + 2);
-  }
-  return text;
-};
-
-const getTaskLists = editorState => {
-  const blockMap = editorState.getCurrentContent().getBlockMap();
-  const [_, sections] = blockMap
-    .map(({text}, blockKey) => {
-      if (testRegex(regex.task, text)) {
-        const taskText = getTaskText(text);
-        return {
-          text: taskText,
-          type: getTaskType(text),
-          task: true,
-          blockKey
-        };
-      }
-      if (text.trim() === "") {
-        return {
-          empty: true,
-          blockKey
-        };
-      }
-      return {
-        text,
-        blockKey
-      };
-    })
-    /* Split into task lists based off white space */
-    .reduce(
-      ([count, acc], item) => {
-        if (item.empty) {
-          return [count + 1, acc];
-        }
-        const splitAcc = count > 1 ? [[]].concat(acc) : acc;
-        const [head, ...rest] = splitAcc;
-        if (head) {
-          const updatedHead = head.concat([item]);
-          return [0, [updatedHead, ...rest]];
-        }
-        return [0, splitAcc];
-      },
-      [0, []]
-    );
-
-  return sections
-    .map(items => {
-      const title =
-        items.length > 0 && !items[0].task ? items[0].text : "Tasks";
-      return {title, items: items.filter(i => i.task)};
-    })
-    .filter(a => a.items.length > 0);
-};
-
-const getNextTaskType = taskType =>
-  ({
-    empty: "completed",
-    completed: "cancelled",
-    cancelled: "empty",
-    "not-task": "empty"
-  }[taskType]);
-
-const getTaskPrefix = type =>
-  ({
-    empty: "[ ] ",
-    completed: "[√] ",
-    cancelled: "[X] ",
-    "not-task": ""
-  }[type]);
-
 const insertCharacter = (editorState, character) => {
   let content = editorState.getCurrentContent();
 
@@ -176,14 +84,6 @@ const toggleListState = editorState => {
   return RichUtils.toggleBlockType(editorState, "unordered-list-item");
 };
 
-const getTopTask = lists => {
-  if (lists.length === 0) {
-    return "Get after it.";
-  }
-  const [head, ...rest] = lists;
-  const f = head.items.find(task => task.type === "empty");
-  return f ? f.text : getTopTask(rest);
-};
 export default class App extends Component {
   state = {editorState: EditorState.createEmpty()};
   componentWillMount() {
@@ -196,44 +96,10 @@ export default class App extends Component {
   };
 
   /* Change text from [ ] => [√] */
-  toggleTaskBlock = (editorState, blockKey) => {
-    const content = editorState.getCurrentContent(),
-      block = content.getBlockForKey(blockKey),
-      text = block.text;
-    const selection = editorState.getSelection();
-    const type = getTaskType(text),
-      nextType = getNextTaskType(type),
-      taskText = getTaskText(text),
-      prefix = getTaskPrefix(nextType),
-      nextText = prefix + taskText;
-    const blockSelection = SelectionState.createEmpty(blockKey).merge({
-        anchorOffset: 0,
-        focusOffset: block.text.length
-      }),
-      contentState = Modifier.replaceText(content, blockSelection, nextText);
-    /* TODO - if last type was not-todo, then increment selection by 4 forward. */
-    const stateWithToggledContent = EditorState.push(editorState, contentState),
-      updatedSelection =
-        type === "not-task"
-          ? selection.merge({
-              anchorOffset: selection.focusOffset + 4,
-              focusOffset: selection.focusOffset + 4
-            })
-          : selection,
-      updatedState = EditorState.acceptSelection(
-        stateWithToggledContent,
-        updatedSelection
-      );
-    this.onChange(updatedState);
-  };
-  toggleCurrentTask = editorState => {
-    const selection = editorState.getSelection();
-    const blockKey = selection.getStartKey();
-    this.toggleTaskBlock(editorState, blockKey);
-  };
 
   handleKeyCommand = command => {
     const {editorState} = this.state;
+    debugger;
     if (command === "myeditor-save") {
       persist(editorState);
       return "handled";
@@ -251,7 +117,18 @@ export default class App extends Component {
       this.onChange(nextState);
     }
     if (command === "myeditor-task-toggle") {
-      this.toggleCurrentTask(editorState);
+      const nextState = this.toggleCurrentTask(editorState);
+      this.onChange(nextState);
+    }
+
+    if (command === "myeditor-return") {
+      const insertNewTodo = R.pipe(
+        insertNewBlock,
+        state => insertCharacter(state, " "),
+        this.toggleCurrentTask
+      );
+      const nextState = insertNewTodo(editorState);
+      this.onChange(nextState);
     }
 
     return "not-handled";
@@ -281,7 +158,9 @@ export default class App extends Component {
                 isActive={index === 0}
                 taskList={list}
                 onTaskClick={task =>
-                  this.toggleTaskBlock(editorState, task.blockKey)
+                  this.onChange(
+                    this.toggleTaskBlock(editorState, task.blockKey)
+                  )
                 }
               />
             ))}
