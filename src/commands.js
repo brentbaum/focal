@@ -1,6 +1,6 @@
 import {RichUtils} from "draft-js";
 import {insertCharacter, toggleListState, insertNewBlock} from "./utils";
-import {toggleCurrentTask} from "./taskUtils";
+import {toggleCurrentTask} from "./taskParser";
 import {pipe} from "ramda";
 import {persist} from "./db";
 

@@ -5,8 +5,10 @@ import {decorator} from "./Editor";
 //const fs = require("fs");
 const electron = window.require("electron");
 const fs = electron.remote.require("fs");
-const zlib = electron.remote.require("zlib");
-console.log(zlib);
+
+export const hasChanged = editorState => {
+  const content = convertToRaw(editorState.getCurrentContent());
+};
 
 export const writeFile = content => {
   return new Promise((resolve, reject) => {

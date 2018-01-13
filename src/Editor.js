@@ -106,13 +106,19 @@ export class TaskEditor extends Component {
   };
 
   render() {
-    const {onChange, editorState} = this.props;
+    const {onChange, editorState, markDirty} = this.props;
     return (
       <Editor
         editorState={editorState}
         onChange={onChange}
         onTab={e => this.handleTab(e)}
         handleKeyCommand={this.props.handleKeyCommand}
+        handleReturn={() => {
+          markDirty(true);
+        }}
+        handleBeforeInput={chars => {
+          markDirty(true);
+        }}
         onUpArrow={e => {
           if (hasCommandModifier(e)) {
             e.preventDefault();

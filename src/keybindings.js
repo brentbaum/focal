@@ -33,23 +33,5 @@ export const myKeyBindingFn = e => {
     return "myeditor-return";
   }
 
-  if (e.keyCode === 38 && hasCommandModifier(e)) {
-    debugger;
-    e.stopPropagation();
-    return "myeditor-swap-up";
-  }
-  if (e.keyCode === 40 && hasCommandModifier(e)) {
-    debugger;
-    e.stopPropagation();
-    return "myeditor-swap-down";
-  }
-
-  if (e.keyCode === 32) {
-    // Only run our more complex checks if the last character
-    // typed is a space
-    // Test the last two characters to see if they match the full unordered
-    // list regex
-    return "myeditor-entity-check";
-  }
   return getDefaultKeyBinding(e);
 };
