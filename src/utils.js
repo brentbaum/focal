@@ -1,4 +1,11 @@
-import {ContentBlock, EditorState, SelectionState, genKey} from "draft-js";
+import {
+  ContentBlock,
+  EditorState,
+  SelectionState,
+  Modifier,
+  RichUtils,
+  genKey
+} from "draft-js";
 import {List} from "immutable";
 export const insertNewBlock = (editorState, direction = "after") => {
   const selection = editorState.getSelection();
@@ -113,4 +120,26 @@ export const swapBlocks = (editorState, direction = "up") => {
     "insert-fragment"
   );
   return EditorState.forceSelection(newEditorState, newSelection);
+};
+
+export const insertCharacter = (editorState, character) => {
+  let content = editorState.getCurrentContent();
+
+  // Retrieve the focused block
+  const selection = editorState.getSelection();
+  const length = selection.getStartOffset() - selection.getEndOffset();
+
+  if (length === 0) {
+    content = Modifier.insertText(content, selection, character);
+  }
+  let nextState = EditorState.push(editorState, content);
+  nextState = EditorState.forceSelection(
+    nextState,
+    content.getSelectionAfter()
+  );
+  return nextState;
+};
+
+export const toggleListState = editorState => {
+  return RichUtils.toggleBlockType(editorState, "unordered-list-item");
 };

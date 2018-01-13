@@ -1,7 +1,5 @@
 import React, {Component} from "react";
-import "./App.css";
 import {
-  convertToRaw,
   CompositeDecorator,
   Modifier,
   Editor,
@@ -9,26 +7,20 @@ import {
   RichUtils,
   KeyBindingUtil
 } from "draft-js";
-import "draft-js/dist/Draft.css";
 import {myKeyBindingFn} from "./keybindings";
 import {swapBlocks} from "./utils";
+import {regex} from "./regex";
 const {hasCommandModifier} = KeyBindingUtil;
-
-const regex = {
-  task: /(\[\]|\[(.+)\]).+$/g,
-  emptyTask: /(\[\]|\[ \]).+$/g,
-  completedTask: /\[√\].+$/g,
-  cancelledTask: /\[X\].+$/g,
-  header: /\#\s(.+)/g
-};
 
 function findWithRegex(regex, contentBlock, callback) {
   const text = contentBlock.getText();
   let matchArr, start;
+  /*eslint-disable */
   while ((matchArr = regex.exec(text)) !== null) {
     start = matchArr.index;
     callback(start, start + matchArr[0].length);
   }
+  /*eslint-enable */
 }
 
 const findLinkEntities = (contentBlock, callback, contentState) => {
@@ -114,7 +106,7 @@ export class TaskEditor extends Component {
   };
 
   render() {
-    const {save, onChange, editorState} = this.props;
+    const {onChange, editorState} = this.props;
     return (
       <Editor
         editorState={editorState}

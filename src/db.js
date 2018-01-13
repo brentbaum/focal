@@ -1,12 +1,12 @@
+import {appDir, fileName, inBrowser} from "./env";
+import {EditorState, convertToRaw, convertFromRaw} from "draft-js";
+import {decorator} from "./Editor";
+
 //const fs = require("fs");
 const electron = window.require("electron");
 const fs = electron.remote.require("fs");
-const os = electron.remote.require("os");
 const zlib = electron.remote.require("zlib");
 console.log(zlib);
-
-const appDir = os.homedir() + "/.get-after-it";
-const fileName = "log";
 
 export const writeFile = content => {
   return new Promise((resolve, reject) => {
@@ -34,5 +34,48 @@ export const readFile = () => {
       }
       resolve(data);
     });
+  });
+};
+
+export const persist = editorState => {
+  const stringifiedState = JSON.stringify(
+    convertToRaw(editorState.getCurrentContent())
+  );
+  if (!inBrowser) {
+    writeFile(stringifiedState)
+      .then(result => {
+        console.log(result);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  } else {
+    localStorage.setItem("editorState", stringifiedState);
+  }
+};
+
+export const hydrateState = stateStr => {
+  if (stateStr) {
+    const state = JSON.parse(stateStr);
+    const content = convertFromRaw(state);
+    return EditorState.createWithContent(content, decorator);
+  }
+  return EditorState.createEmpty(decorator);
+};
+
+export const getSavedState = () => {
+  return new Promise((resolve, reject) => {
+    if (!inBrowser) {
+      readFile()
+        .then(result => {
+          resolve(hydrateState(result));
+        })
+        .catch(() => {
+          resolve(hydrateState());
+        });
+    } else {
+      const state = localStorage.getItem("editorState");
+      resolve(hydrateState(state));
+    }
   });
 };

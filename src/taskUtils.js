@@ -1,13 +1,6 @@
 import {regex} from "./regex";
 
-import {
-  convertFromRaw,
-  convertToRaw,
-  SelectionState,
-  EditorState,
-  Modifier,
-  RichUtils
-} from "draft-js";
+import {SelectionState, EditorState, Modifier} from "draft-js";
 
 export const testRegex = (regex, text) => {
   const result = regex.test(text);
@@ -129,7 +122,7 @@ export const toggleTaskBlock = (editorState, blockKey) => {
 export const toggleCurrentTask = editorState => {
   const selection = editorState.getSelection();
   const blockKey = selection.getStartKey();
-  return this.toggleTaskBlock(editorState, blockKey);
+  return toggleTaskBlock(editorState, blockKey);
 };
 
 export const getTopTask = lists => {

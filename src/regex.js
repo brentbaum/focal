@@ -3,5 +3,5 @@ export const regex = {
   emptyTask: /(\[\]|\[ \]).+$/g,
   completedTask: /\[√\].+$/g,
   cancelledTask: /\[X\].+$/g,
-  header: /\#\s(.+)/g
+  header: /#\s(.+)/g
 };
