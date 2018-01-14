@@ -11,6 +11,7 @@ import {swapBlocks} from "./utils";
 const {hasCommandModifier} = KeyBindingUtil;
 export class TaskEditor extends React.Component {
   setDomEditorRef = ref => (this.domEditor = ref);
+
   componentDidMount() {
     this.domEditor.focus();
   }

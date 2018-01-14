@@ -1,6 +1,9 @@
 import React from "react";
 import {CompositeDecorator} from "draft-js";
 import {regex} from "./regex";
+import {connect} from "redux-zero/react";
+import {mapPropsStreamWithConfig} from "recompose";
+import actions from "./actions";
 
 const findWithRegex = (regex, contentBlock, callback) => {
   const text = contentBlock.getText();
@@ -23,11 +26,11 @@ const findRegex = re => (contentBlock, callback, contentState) => {
   findWithRegex(re, contentBlock, callback);
 };
 
-const TaskItem = ({
+const TaskItemComponent = ({
   contentState,
   decoratedText,
   entityKey,
-  editorProps = {},
+  metaState = {},
   ...props
 }) => {
   let style =
@@ -35,13 +38,17 @@ const TaskItem = ({
       completed: styles.completedTask,
       cancelled: styles.cancelledTask
     }[props.type] || styles.task;
-  const blanks = editorProps.blanks;
+  const blanks = metaState.blanks;
+  console.log(metaState);
   return (
     <div {...props} style={style} data-offset-key={props.offsetKey}>
       {props.children}
     </div>
   );
 };
+
+const mapToProps = ({metaState}) => ({metaState});
+const TaskItem = connect(mapToProps, actions)(TaskItemComponent);
 
 const BlockSeparator = ({children, decoratedText}) => {
   return (
