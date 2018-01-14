@@ -6,16 +6,22 @@ import {TaskList} from "./TaskList";
 import {EditorState} from "draft-js";
 import {handleKeyCommand} from "./commands";
 import {getTextSelection} from "./utils";
-import {decorator} from "./decorator";
+import {restoreScroll, watchScroll} from "./scroll";
 
 export default class App extends Component {
   state = {editorState: EditorState.createEmpty()};
   componentWillMount() {
     getSavedState().then(state => {
       this.setState({editorState: state});
+
+      restoreScroll();
     });
     document.addEventListener("copy", this.handleCopy);
     document.addEventListener("paste", this.handlePaste);
+  }
+
+  componentDidMount() {
+    watchScroll();
   }
   handleCopy = e => {
     const content = this.state.editorState.getCurrentContent();
