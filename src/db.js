@@ -1,6 +1,6 @@
 import {appDir, fileName, inBrowser} from "./env";
 import {EditorState, convertToRaw, convertFromRaw} from "draft-js";
-import {decorator} from "./Editor";
+import {decorator} from "./decorator";
 
 //const fs = require("fs");
 const electron = window.require("electron");
