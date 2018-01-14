@@ -23,12 +23,19 @@ const findRegex = re => (contentBlock, callback, contentState) => {
   findWithRegex(re, contentBlock, callback);
 };
 
-const TaskItem = ({contentState, decoratedText, entityKey, ...props}) => {
+const TaskItem = ({
+  contentState,
+  decoratedText,
+  entityKey,
+  editorProps = {},
+  ...props
+}) => {
   let style =
     {
       completed: styles.completedTask,
       cancelled: styles.cancelledTask
     }[props.type] || styles.task;
+  const blanks = editorProps.blanks;
   return (
     <div {...props} style={style} data-offset-key={props.offsetKey}>
       {props.children}
@@ -36,37 +43,42 @@ const TaskItem = ({contentState, decoratedText, entityKey, ...props}) => {
   );
 };
 
-const BlockSeparator = ({children, decoratedText}) => (
-  <div>
-    <div
-      style={{position: "absolute", top: 20, borderTop: "1px solid black"}}
-    />
-    {children}
-  </div>
-);
+const BlockSeparator = ({children, decoratedText}) => {
+  return (
+    <div>
+      <div
+        style={{position: "absolute", top: 20, borderTop: "1px solid black"}}
+      />
+      {children}
+    </div>
+  );
+};
 
-export const decorator = new CompositeDecorator([
-  {
-    strategy: findRegex(regex.link),
-    component: Link
-  },
-  {
-    strategy: findRegex(regex.blockSeparator),
-    component: BlockSeparator
-  },
-  {
-    strategy: findRegex(regex.completedTask),
-    component: props => <TaskItem {...props} type="completed" />
-  },
-  {
-    strategy: findRegex(regex.cancelledTask),
-    component: props => <TaskItem {...props} type="cancelled" />
-  },
-  {
-    strategy: findRegex(regex.task),
-    component: props => <TaskItem {...props} type="empty" />
-  }
-]);
+export const decorator = editorProps =>
+  new CompositeDecorator([
+    {
+      strategy: findRegex(regex.link),
+      component: Link
+    },
+    {
+      strategy: findRegex(regex.completedTask),
+      component: props => (
+        <TaskItem {...props} type="completed" editorProps={editorProps} />
+      )
+    },
+    {
+      strategy: findRegex(regex.cancelledTask),
+      component: props => (
+        <TaskItem {...props} type="cancelled" editorProps={editorProps} />
+      )
+    },
+    {
+      strategy: findRegex(regex.task),
+      component: props => (
+        <TaskItem {...props} type="empty" editorProps={editorProps} />
+      )
+    }
+  ]);
 
 const flexAlign = {
   display: "inline-flex",

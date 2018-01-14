@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import * as React from "react";
 import {
   Modifier,
   Editor,
@@ -9,7 +9,7 @@ import {
 import {myKeyBindingFn} from "./keybindings";
 import {swapBlocks} from "./utils";
 const {hasCommandModifier} = KeyBindingUtil;
-export class TaskEditor extends Component {
+export class TaskEditor extends React.Component {
   setDomEditorRef = ref => (this.domEditor = ref);
   componentDidMount() {
     this.domEditor.focus();
@@ -46,9 +46,11 @@ export class TaskEditor extends Component {
         handleKeyCommand={this.props.handleKeyCommand}
         handleReturn={() => {
           markDirty(true);
+          return "not-handled";
         }}
         handleBeforeInput={chars => {
           markDirty(true);
+          return "not-handled";
         }}
         onUpArrow={e => {
           if (hasCommandModifier(e)) {

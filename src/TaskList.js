@@ -18,6 +18,7 @@ export const TaskListComponent = ({
       {isActive &&
         taskList.items.filter(task => task.type !== "incomplete").map(task => (
           <li
+            key={task.blockKey}
             onClick={() => onTaskClick(task)}
             className="task-item"
             style={{

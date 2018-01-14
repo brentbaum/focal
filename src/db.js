@@ -6,10 +6,6 @@ import {decorator} from "./decorator";
 const electron = window.require("electron");
 const fs = electron.remote.require("fs");
 
-export const hasChanged = editorState => {
-  const content = convertToRaw(editorState.getCurrentContent());
-};
-
 export const writeFile = content => {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(appDir)) {
@@ -60,9 +56,9 @@ export const hydrateState = stateStr => {
   if (stateStr) {
     const state = JSON.parse(stateStr);
     const content = convertFromRaw(state);
-    return EditorState.createWithContent(content, decorator);
+    return EditorState.createWithContent(content, decorator());
   }
-  return EditorState.createEmpty(decorator);
+  return EditorState.createEmpty(decorator());
 };
 
 export const getSavedState = () => {

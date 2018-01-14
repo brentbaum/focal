@@ -25,7 +25,7 @@ export const getTaskText = text => {
 
 export const getTaskLists = editorState => {
   const blockMap = editorState.getCurrentContent().getBlockMap();
-  const [_, sections] = blockMap
+  const [_, sections, blanks] = blockMap
     .map(({text}, blockKey) => {
       if (testRegex(regex.task, text)) {
         const taskText = getTaskText(text);
@@ -47,30 +47,42 @@ export const getTaskLists = editorState => {
         blockKey
       };
     })
-    /* Split into task lists based off white space */
+    /* 
+       Split into task lists based off white space. 
+       Label allgap blocks. 
+    */
     .reduce(
-      ([count, acc], item) => {
+      ([count, acc], item, blanks) => {
         if (item.empty) {
-          return [count + 1, acc];
+          const updatedBlanks =
+            count > 1
+              ? {
+                  ...blanks,
+                  [item.blockKey]: true
+                }
+              : blanks;
+          return [count + 1, acc, updatedBlanks];
         }
         const splitAcc = count > 1 ? [[]].concat(acc) : acc;
         const [head, ...rest] = splitAcc;
         if (head) {
           const updatedHead = head.concat([item]);
-          return [0, [updatedHead, ...rest]];
+          return [0, [updatedHead, ...rest], blanks];
         }
-        return [0, splitAcc];
+        return [0, splitAcc, blanks];
       },
-      [0, []]
+      [0, [], {}]
     );
 
-  return sections
+  const taskLists = sections
     .map(items => {
       const title =
         items.length > 0 && !items[0].task ? items[0].text : "Tasks";
       return {title, items: items.filter(i => i.task)};
     })
     .filter(a => a.items.length > 0);
+
+  return {taskLists, blanks};
 };
 
 export const getNextTaskType = taskType =>

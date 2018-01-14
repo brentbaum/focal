@@ -1,11 +1,12 @@
 import {TaskEditor} from "./Editor";
 import {getTopTask, getTaskLists, toggleTaskBlock} from "./taskParser";
-import {getSavedState, persist, hasChanged} from "./db";
+import {getSavedState} from "./db";
 import React, {Component} from "react";
 import {TaskList} from "./TaskList";
-import {EditorState, convertToRaw} from "draft-js";
+import {EditorState} from "draft-js";
 import {handleKeyCommand} from "./commands";
 import {getTextSelection} from "./utils";
+import {decorator} from "./decorator";
 
 export default class App extends Component {
   state = {editorState: EditorState.createEmpty()};
@@ -25,7 +26,7 @@ export default class App extends Component {
     e.preventDefault();
   };
   handlePaste = e => {
-    var data = e.clipboardData.getData("text/plain");
+    const data = e.clipboardData.getData("text/plain");
     e.preventDefault();
   };
   onChange = editorState => {
@@ -36,8 +37,9 @@ export default class App extends Component {
 
   render() {
     const {dirty, editorState} = this.state;
-    const taskLists = getTaskLists(editorState), // []
+    const {taskLists, blanks} = getTaskLists(editorState), // []
       topTask = getTopTask(taskLists);
+
     return (
       <div className="App">
         <header className="App-header">
