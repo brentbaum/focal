@@ -23,24 +23,11 @@ function findWithRegex(regex, contentBlock, callback) {
   /*eslint-enable */
 }
 
-const findLinkEntities = (contentBlock, callback, contentState) => {
-  contentBlock.findEntityRanges(character => {
-    const entityKey = character.getEntity();
-    return (
-      entityKey !== null &&
-      contentState.getEntity(entityKey).getType() === "LINK"
-    );
-  }, callback);
-};
-
-const Link = props => {
-  const {url} = props.contentState.getEntity(props.entityKey).getData();
-  return (
-    <a href={url} style={styles.link}>
-      {props.children}
-    </a>
-  );
-};
+const Link = ({decoratedText, children}) => (
+  <a href={decoratedText} style={styles.link}>
+    {children}
+  </a>
+);
 
 const findRegex = re => (contentBlock, callback, contentState) => {
   findWithRegex(re, contentBlock, callback);
@@ -61,7 +48,7 @@ const TaskItem = ({contentState, decoratedText, entityKey, ...props}) => {
 
 export const decorator = new CompositeDecorator([
   {
-    strategy: findLinkEntities,
+    strategy: findRegex(regex.link),
     component: Link
   },
   {

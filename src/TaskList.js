@@ -7,7 +7,8 @@ export const TaskListComponent = ({
   onTaskClick,
   showCompleted,
   isActive,
-  toggleActive
+  toggleActive,
+  topTask = {}
 }) => {
   return (
     <ul style={{listStyle: "none", marginTop: 8}}>
@@ -20,7 +21,9 @@ export const TaskListComponent = ({
             onClick={() => onTaskClick(task)}
             className="task-item"
             style={{
-              textDecoration: task.type === "cancelled" ? "line-through" : ""
+              textDecoration: task.type === "cancelled" ? "line-through" : "",
+              fontWeight:
+                task.blockKey === topTask.blockKey ? "bold" : "inherit"
             }}>
             <span className="task-item--status">
               <Checkbox

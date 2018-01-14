@@ -1,5 +1,5 @@
 {
-  "name": "get-after-it",
+  "name": "focal",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -20,7 +20,8 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "build-app": "yarn run build && yarn run package",
-    "package": "npx electron-packager ./ GetAfterIt --version=0.0.1 --out=./packaged --overwrite --platform=darwin",
+    "package":
+      "npx electron-packager ./ GetAfterIt --version=0.0.1 --out=./packaged --overwrite --platform=darwin",
     "start-electron": "nf start"
   },
   "main": "src/electron-starter.js",
@@ -35,13 +36,8 @@
   },
   "homepage": "./",
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "prettier"
-    ],
-    "plugins": [
-      "prettier"
-    ],
+    "extends": ["react-app", "prettier"],
+    "plugins": ["prettier"],
     "rules": {
       "prettier/prettier": [
         "warn",
@@ -51,9 +47,7 @@
         }
       ],
       "jsx-a11y/href-no-hash": 0,
-      "jsx-a11y/anchor-is-valid": [
-        1
-      ]
+      "jsx-a11y/anchor-is-valid": [1]
     }
   }
 }

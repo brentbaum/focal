@@ -41,7 +41,7 @@ export default class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <span>{topTask || "<new task>"} </span>
+          <span>{topTask ? topTask.text : "<new task>"} </span>
           {dirty && (
             <div
               style={{
@@ -59,6 +59,7 @@ export default class App extends Component {
         <div className="App-content">
           <div className="App-editor" style={{flex: 5}}>
             <TaskEditor
+              topTask={topTask}
               editorState={editorState}
               onChange={editorState => {
                 this.onChange(editorState);
@@ -75,6 +76,7 @@ export default class App extends Component {
           <div style={{minWidth: 280, flex: 2}}>
             {taskLists.map((list, index) => (
               <TaskList
+                topTask={topTask}
                 isActive={index === 0}
                 taskList={list}
                 onTaskClick={task =>

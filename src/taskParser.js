@@ -127,9 +127,9 @@ export const toggleCurrentTask = editorState => {
 
 export const getTopTask = lists => {
   if (lists.length === 0) {
-    return "Get after it.";
+    return {text: "Get after it.", blockKey: null};
   }
   const [head, ...rest] = lists;
   const f = head.items.find(task => task.type === "empty");
-  return f ? f.text : getTopTask(rest);
+  return f ? f : getTopTask(rest);
 };

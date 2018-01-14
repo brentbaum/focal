@@ -8,6 +8,8 @@ body,
   bottom: 0;
   right: 0;
   left: 0;
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 .App {
@@ -79,6 +81,7 @@ body,
 
 .task-item--status {
   padding-right: 8px;
+  padding-top: 2px;
 }
 
 .task-list-title {
