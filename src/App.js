@@ -49,7 +49,7 @@ class AppComponent extends Component {
 
   render() {
     const {dirty, sideMenuVisible} = this.state,
-      {editorState, metaState, setEditorState, setMetaState} = this.props,
+      {editorState, metaState} = this.props,
       {topTask = {}, taskLists = [], blanks} = metaState;
 
     return (
@@ -89,7 +89,7 @@ class AppComponent extends Component {
             />
           </div>
           {sideMenuVisible && (
-            <div style={{minWidth: 280, flex: 2}}>
+            <div style={{minWidth: 300, flex: 2}}>
               {taskLists.map((list, index) => (
                 <TaskList
                   topTask={topTask}
