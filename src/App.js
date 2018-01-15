@@ -38,9 +38,9 @@ class AppComponent extends Component {
     e.preventDefault();
   };
   onChange = editorState => {
-    const {taskLists, blanks} = getTaskLists(editorState), // []
+    const {taskLists, blanks, meetings} = getTaskLists(editorState), // []
       topTask = getTopTask(taskLists),
-      metaState = {topTask, taskLists, blanks};
+      metaState = {topTask, taskLists, blanks, meetings};
     this.props.setEditorState(editorState);
     this.props.setMetaState(metaState);
   };

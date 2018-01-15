@@ -86,7 +86,9 @@ export const getTaskLists = editorState => {
     })
     .filter(a => a.items.length > 0);
 
-  return {taskLists, blanks};
+  const meetings = taskLists.filter(t => t.title.indexOf("$$") === 0);
+
+  return {taskLists, blanks, meetings};
 };
 
 export const getNextTaskType = taskType =>

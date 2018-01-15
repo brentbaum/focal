@@ -40,6 +40,9 @@ const TaskItemComponent = ({
     }[props.type] || styles.task;
   const {topTask = {}} = metaState;
   const blockKey = children[0].props.block.key;
+  if (blockKey === topTask.blockKey) {
+    console.log("It matches!");
+  }
   return (
     <div
       {...props}
