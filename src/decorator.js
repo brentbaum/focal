@@ -2,7 +2,6 @@ import React from "react";
 import {CompositeDecorator} from "draft-js";
 import {regex} from "./regex";
 import {connect} from "redux-zero/react";
-import {mapPropsStreamWithConfig} from "recompose";
 import actions from "./actions";
 
 const findWithRegex = (regex, contentBlock, callback) => {
@@ -31,6 +30,7 @@ const TaskItemComponent = ({
   decoratedText,
   entityKey,
   metaState = {},
+  children,
   ...props
 }) => {
   let style =
@@ -38,28 +38,21 @@ const TaskItemComponent = ({
       completed: styles.completedTask,
       cancelled: styles.cancelledTask
     }[props.type] || styles.task;
-  const blanks = metaState.blanks;
-  console.log(metaState);
+  const {topTask = {}} = metaState;
+  const blockKey = children[0].props.block.key;
   return (
-    <div {...props} style={style} data-offset-key={props.offsetKey}>
-      {props.children}
-    </div>
-  );
-};
-
-const mapToProps = ({metaState}) => ({metaState});
-const TaskItem = connect(mapToProps, actions)(TaskItemComponent);
-
-const BlockSeparator = ({children, decoratedText}) => {
-  return (
-    <div>
-      <div
-        style={{position: "absolute", top: 20, borderTop: "1px solid black"}}
-      />
+    <div
+      {...props}
+      style={style}
+      data-offset-key={props.offsetKey}
+      className={topTask.blockKey === blockKey ? "indicator" : ""}>
       {children}
     </div>
   );
 };
+
+const mapMetaToProps = ({metaState}) => ({metaState});
+const TaskItem = connect(mapMetaToProps, actions)(TaskItemComponent);
 
 export const decorator = editorProps =>
   new CompositeDecorator([
@@ -69,21 +62,15 @@ export const decorator = editorProps =>
     },
     {
       strategy: findRegex(regex.completedTask),
-      component: props => (
-        <TaskItem {...props} type="completed" editorProps={editorProps} />
-      )
+      component: props => <TaskItem {...props} type="completed" />
     },
     {
       strategy: findRegex(regex.cancelledTask),
-      component: props => (
-        <TaskItem {...props} type="cancelled" editorProps={editorProps} />
-      )
+      component: props => <TaskItem {...props} type="cancelled" />
     },
     {
       strategy: findRegex(regex.task),
-      component: props => (
-        <TaskItem {...props} type="empty" editorProps={editorProps} />
-      )
+      component: props => <TaskItem {...props} type="empty" />
     }
   ]);
 

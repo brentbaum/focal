@@ -7,12 +7,14 @@ import {EditorState} from "draft-js";
 import {handleKeyCommand} from "./commands";
 import {getTextSelection} from "./utils";
 import {restoreScroll, watchScroll} from "./scroll";
+import {connect} from "redux-zero/react";
+import actions from "./actions";
 
-export default class App extends Component {
-  state = {editorState: EditorState.createEmpty()};
+class AppComponent extends Component {
+  state = {dirty: false};
   componentWillMount() {
     getSavedState().then(state => {
-      this.setState({editorState: state});
+      this.onChange(state);
 
       restoreScroll();
     });
@@ -24,27 +26,31 @@ export default class App extends Component {
     watchScroll();
   }
   handleCopy = e => {
-    const content = this.state.editorState.getCurrentContent();
-    const selection = this.state.editorState.getSelection();
+    const {editorState} = this.props;
+    const content = editorState.getCurrentContent();
+    const selection = editorState.getSelection();
     const text = getTextSelection(content, selection);
     e.clipboardData.setData("text/plain", text);
 
     e.preventDefault();
   };
   handlePaste = e => {
-    const data = e.clipboardData.getData("text/plain");
     e.preventDefault();
   };
   onChange = editorState => {
-    this.setState({editorState});
+    const {taskLists, blanks} = getTaskLists(editorState), // []
+      topTask = getTopTask(taskLists),
+      metaState = {topTask, taskLists, blanks};
+    this.props.setEditorState(editorState);
+    this.props.setMetaState(metaState);
   };
 
   /* Change text from [ ] => [√] */
 
   render() {
-    const {dirty, editorState} = this.state;
-    const {taskLists, blanks} = getTaskLists(editorState), // []
-      topTask = getTopTask(taskLists);
+    const {dirty, sideMenuVisible} = this.state,
+      {editorState, metaState, setEditorState, setMetaState} = this.props,
+      {topTask = {}, taskLists = [], blanks} = metaState;
 
     return (
       <div className="App">
@@ -68,6 +74,7 @@ export default class App extends Component {
           <div className="App-editor" style={{flex: 5}}>
             <TaskEditor
               topTask={topTask}
+              blanks={blanks}
               editorState={editorState}
               onChange={editorState => {
                 this.onChange(editorState);
@@ -81,20 +88,24 @@ export default class App extends Component {
               }}
             />
           </div>
-          <div style={{minWidth: 280, flex: 2}}>
-            {taskLists.map((list, index) => (
-              <TaskList
-                topTask={topTask}
-                isActive={index === 0}
-                taskList={list}
-                onTaskClick={task =>
-                  this.onChange(toggleTaskBlock(editorState, task.blockKey))
-                }
-              />
-            ))}
-          </div>
+          {sideMenuVisible && (
+            <div style={{minWidth: 280, flex: 2}}>
+              {taskLists.map((list, index) => (
+                <TaskList
+                  topTask={topTask}
+                  isActive={index === 0}
+                  taskList={list}
+                  onTaskClick={task =>
+                    this.onChange(toggleTaskBlock(editorState, task.blockKey))
+                  }
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 }
+const mapToProps = ({editorState, metaState}) => ({editorState, metaState});
+export const App = connect(mapToProps, actions)(AppComponent);

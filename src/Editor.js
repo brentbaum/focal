@@ -9,6 +9,14 @@ import {
 import {myKeyBindingFn} from "./keybindings";
 import {swapBlocks} from "./utils";
 const {hasCommandModifier} = KeyBindingUtil;
+
+const myBlockStyler = blanks => contentBlock => {
+  const key = contentBlock.key;
+  if (blanks[key]) {
+    return "blank-block";
+  }
+};
+
 export class TaskEditor extends React.Component {
   setDomEditorRef = ref => (this.domEditor = ref);
 
@@ -38,13 +46,14 @@ export class TaskEditor extends React.Component {
   };
 
   render() {
-    const {onChange, editorState, markDirty} = this.props;
+    const {onChange, editorState, markDirty, blanks} = this.props;
     return (
       <Editor
         editorState={editorState}
         onChange={onChange}
         onTab={e => this.handleTab(e)}
         handleKeyCommand={this.props.handleKeyCommand}
+        blockStyleFn={myBlockStyler(blanks)}
         handleReturn={() => {
           markDirty(true);
           return "not-handled";

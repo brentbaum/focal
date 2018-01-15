@@ -40,7 +40,7 @@ body,
 }
 
 .App-editor {
-  padding: 8px 32px;
+  padding: 8px 0;
   flex: 1;
   background: #f8f8f9;
   text-align: left;
@@ -92,4 +92,30 @@ body,
   padding-left: 24px;
   text-align: left;
   cursor: pointer;
+}
+
+.indicator:before {
+  content: " ";
+  position: absolute;
+  left: -16px;
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  background: #777;
+}
+
+.blank-block {
+  background: #eee;
+}
+
+.public-DraftStyleDefault-block {
+  padding-left: 32px;
+}
+
+.public-DraftStyleDefault-ul {
+  padding-left: 32px;
+}
+
+.public-DraftStyleDefault-ul .public-DraftStyleDefault-block {
+  padding-left: 0px;
 }

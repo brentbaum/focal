@@ -23,6 +23,10 @@ export const getTaskText = text => {
   return text;
 };
 
+const hasBlankNeighbor = (array, index) =>
+  (index > 0 && array[index - 1].empty) ||
+  (index < array.length - 1 && array[index + 1].empty);
+
 export const getTaskLists = editorState => {
   const blockMap = editorState.getCurrentContent().getBlockMap();
   const [_, sections, blanks] = blockMap
@@ -52,15 +56,15 @@ export const getTaskLists = editorState => {
        Label allgap blocks. 
     */
     .reduce(
-      ([count, acc], item, blanks) => {
+      ([count, acc, blanks], item, key, map) => {
         if (item.empty) {
-          const updatedBlanks =
-            count > 1
-              ? {
-                  ...blanks,
-                  [item.blockKey]: true
-                }
-              : blanks;
+          const index = map.keySeq().indexOf(key);
+          const updatedBlanks = hasBlankNeighbor(map.toArray(), index)
+            ? {
+                ...blanks,
+                [item.blockKey]: true
+              }
+            : blanks;
           return [count + 1, acc, updatedBlanks];
         }
         const splitAcc = count > 1 ? [[]].concat(acc) : acc;
