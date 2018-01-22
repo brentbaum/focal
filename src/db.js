@@ -6,7 +6,7 @@ import {decorator} from "./decorator";
 const electron = window.require("electron");
 const fs = electron.remote.require("fs");
 
-export const writeFile = content => {
+export const writeFile = (content, filename) => {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(appDir)) {
       fs.mkdirSync(appDir);
@@ -23,7 +23,11 @@ export const writeFile = content => {
   });
 };
 
-export const readFile = () => {
+export const getLogs = () => {
+  return fs.readDirSync(appDir);
+};
+
+export const readFile = (filename = "log") => {
   return new Promise((resolve, reject) => {
     fs.readFile(`${appDir}/${fileName}`, "utf8", function(err, data) {
       if (err) {
@@ -35,12 +39,12 @@ export const readFile = () => {
   });
 };
 
-export const persist = editorState => {
+export const persist = (editorState, fileName = "log") => {
   const stringifiedState = JSON.stringify(
     convertToRaw(editorState.getCurrentContent())
   );
   if (!inBrowser) {
-    writeFile(stringifiedState)
+    writeFile(stringifiedState, fileName)
       .then(result => {
         console.log(result);
       })
