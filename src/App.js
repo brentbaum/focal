@@ -1,6 +1,6 @@
 import {TaskEditor} from "./Editor";
 import {getTopTask, getTaskLists, toggleTaskBlock} from "./taskParser";
-import {getSavedState} from "./db";
+import {getSavedState, getLogs, persist} from "./db";
 import * as React from "react";
 import {TaskList} from "./TaskList";
 import {EditorState} from "draft-js";
@@ -43,13 +43,15 @@ const Overlay = ({title, onClose, children}) => (
 );
 
 class AppComponent extends React.Component {
-  state = {dirty: false, overlayType: null};
+  state = {dirty: false, overlayType: null, logList: [], activeLog: "log"};
   componentWillMount() {
     getSavedState().then(state => {
       this.onChange(state);
 
       restoreScroll();
     });
+    const logList = getLogs();
+    this.setState({logList});
     document.addEventListener("copy", this.handleCopy);
     document.addEventListener("paste", this.handlePaste);
   }
@@ -83,8 +85,17 @@ class AppComponent extends React.Component {
     this.setState({overlayType});
   };
 
+  setActiveLog = fileName => {
+    this.setState({activeLog: fileName});
+    this.setOverlay(null);
+    debugger;
+    getSavedState(fileName).then(state => {
+      this.onChange(state);
+    });
+  };
+
   render() {
-    const {dirty, overlayType} = this.state,
+    const {dirty, overlayType, logList} = this.state,
       {editorState, metaState} = this.props,
       {topTask = {}, taskLists = [], blanks, meetings} = metaState;
 
@@ -118,6 +129,7 @@ class AppComponent extends React.Component {
               markDirty={dirty => this.setState({dirty})}
               handleKeyCommand={command => {
                 if (command === "myeditor-save") {
+                  persist(editorState, this.state.activeLog);
                   this.setState({dirty: false});
                 }
                 if (command === "myeditor-show-editor") {
@@ -128,6 +140,9 @@ class AppComponent extends React.Component {
                 }
                 if (command === "myeditor-show-meetings") {
                   this.setOverlay("meetings");
+                }
+                if (command === "myeditor-show-logs") {
+                  this.setOverlay("logs");
                 }
                 return handleKeyCommand(this.onChange, editorState, command);
               }}
@@ -159,6 +174,19 @@ class AppComponent extends React.Component {
                   }
                 />
               ))}
+            </Overlay>
+          )}
+          {overlayType === "logs" && (
+            <Overlay title="Logs" onClose={() => this.setOverlay(null)}>
+              <ul style={{textAlign: "left"}}>
+                {logList.map(fileName => (
+                  <li
+                    key={fileName}
+                    onClick={() => this.setActiveLog(fileName)}>
+                    {fileName}
+                  </li>
+                ))}
+              </ul>
             </Overlay>
           )}
         </div>

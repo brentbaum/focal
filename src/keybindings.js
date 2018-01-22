@@ -44,6 +44,9 @@ export const myKeyBindingFn = e => {
   if (e.keyCode === 51 && hasCommandModifier(e)) {
     return "myeditor-show-meetings";
   }
+  if (e.keyCode === 52 && hasCommandModifier(e)) {
+    return "myeditor-show-logs";
+  }
 
   return getDefaultKeyBinding(e);
 };

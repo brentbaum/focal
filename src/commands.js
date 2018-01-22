@@ -6,7 +6,6 @@ import {persist} from "./db";
 
 export const handleKeyCommand = (onChange, editorState, command) => {
   if (command === "myeditor-save") {
-    persist(editorState);
     return "handled";
   }
   if (command === "myeditor-bold") {

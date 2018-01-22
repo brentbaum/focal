@@ -24,10 +24,10 @@ export const writeFile = (content, filename) => {
 };
 
 export const getLogs = () => {
-  return fs.readDirSync(appDir);
+  return fs.readdirSync(appDir).filter(n => n !== ".git");
 };
 
-export const readFile = (filename = "log") => {
+export const readFile = filename => {
   return new Promise((resolve, reject) => {
     fs.readFile(`${appDir}/${fileName}`, "utf8", function(err, data) {
       if (err) {
@@ -65,10 +65,10 @@ export const hydrateState = stateStr => {
   return EditorState.createEmpty(decorator());
 };
 
-export const getSavedState = () => {
+export const getSavedState = (filename = "log") => {
   return new Promise((resolve, reject) => {
     if (!inBrowser) {
-      readFile()
+      readFile(filename)
         .then(result => {
           resolve(hydrateState(result));
         })
