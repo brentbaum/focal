@@ -1,7 +1,7 @@
 import {TaskEditor} from "./Editor";
 import {getTopTask, getTaskLists, toggleTaskBlock} from "./taskParser";
 import {getSavedState} from "./db";
-import React, {Component} from "react";
+import * as React from "react";
 import {TaskList} from "./TaskList";
 import {EditorState} from "draft-js";
 import {handleKeyCommand} from "./commands";
@@ -9,9 +9,41 @@ import {getTextSelection} from "./utils";
 import {restoreScroll, watchScroll} from "./scroll";
 import {connect} from "redux-zero/react";
 import actions from "./actions";
+import {Button} from "semantic-ui-react";
 
-class AppComponent extends Component {
-  state = {dirty: false};
+const Overlay = ({title, onClose, children}) => (
+  <div
+    style={{
+      position: "absolute",
+      overflow: "auto",
+      background: "white",
+      display: "flex",
+      flexDirection: "column",
+      zIndex: 5,
+      left: 40,
+      top: 32,
+      right: 40,
+      bottom: 32
+    }}>
+    <div
+      style={{
+        padding: "0px 40px",
+        minHeight: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}>
+      <span>{title}</span>
+      <Button basic color="black" size="tiny" onClick={() => onClose()}>
+        Close
+      </Button>
+    </div>
+    <div style={{flex: 1}}>{children}</div>
+  </div>
+);
+
+class AppComponent extends React.Component {
+  state = {dirty: false, overlayType: null};
   componentWillMount() {
     getSavedState().then(state => {
       this.onChange(state);
@@ -47,10 +79,14 @@ class AppComponent extends Component {
 
   /* Change text from [ ] => [√] */
 
+  setOverlay = overlayType => {
+    this.setState({overlayType});
+  };
+
   render() {
-    const {dirty, sideMenuVisible} = this.state,
+    const {dirty, overlayType} = this.state,
       {editorState, metaState} = this.props,
-      {topTask = {}, taskLists = [], blanks} = metaState;
+      {topTask = {}, taskLists = [], blanks, meetings} = metaState;
 
     return (
       <div className="App">
@@ -84,12 +120,21 @@ class AppComponent extends Component {
                 if (command === "myeditor-save") {
                   this.setState({dirty: false});
                 }
+                if (command === "myeditor-show-editor") {
+                  this.setOverlay(null);
+                }
+                if (command === "myeditor-show-tasks") {
+                  this.setOverlay("tasks");
+                }
+                if (command === "myeditor-show-meetings") {
+                  this.setOverlay("meetings");
+                }
                 return handleKeyCommand(this.onChange, editorState, command);
               }}
             />
           </div>
-          {sideMenuVisible && (
-            <div style={{minWidth: 300, flex: 2}}>
+          {overlayType === "tasks" && (
+            <Overlay title="Tasks" onClose={() => this.setOverlay(null)}>
               {taskLists.map((list, index) => (
                 <TaskList
                   topTask={topTask}
@@ -100,7 +145,21 @@ class AppComponent extends Component {
                   }
                 />
               ))}
-            </div>
+            </Overlay>
+          )}
+          {overlayType === "meetings" && (
+            <Overlay title="Meetings" onClose={() => this.setOverlay(null)}>
+              {meetings.map((list, index) => (
+                <TaskList
+                  meetings={meetings}
+                  isActive={index === 0}
+                  taskList={list}
+                  onTaskClick={task =>
+                    this.onChange(toggleTaskBlock(editorState, task.blockKey))
+                  }
+                />
+              ))}
+            </Overlay>
           )}
         </div>
       </div>

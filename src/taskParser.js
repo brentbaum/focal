@@ -78,15 +78,27 @@ export const getTaskLists = editorState => {
       [0, [], {}]
     );
 
-  const taskLists = sections
-    .map(items => {
-      const title =
-        items.length > 0 && !items[0].task ? items[0].text : "Tasks";
-      return {title, items: items.filter(i => i.task)};
-    })
-    .filter(a => a.items.length > 0);
+  const lists = sections
+      .map(items => {
+        const title =
+            items.length > 0 && !items[0].task ? items[0].text : "Tasks",
+          taskCount = items.filter(i => i.task).length;
+        return {title, items, taskCount};
+      })
+      .filter(a => a.items.length > 0),
+    taskLists = lists.filter(l => l.taskCount > 0);
+  /* Combine adjacent non-task items? */
 
-  const meetings = taskLists.filter(t => t.title.indexOf("$$") === 0);
+  const meetings = lists
+    .filter(t => t.title.indexOf("$$") === 0)
+    .map(meeting => {
+      console.log(meeting.title, meeting.title.indexOf("$$") + 2);
+      return {
+        ...meeting,
+        items: meeting.items.slice(1),
+        title: meeting.title.slice(meeting.title.indexOf("$$") + 2).trim()
+      };
+    });
 
   return {taskLists, blanks, meetings};
 };

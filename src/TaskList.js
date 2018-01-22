@@ -13,28 +13,36 @@ export const TaskListComponent = ({
   return (
     <ul style={{listStyle: "none", marginTop: 8}}>
       <li className="task-list-title" onClick={() => toggleActive(!isActive)}>
-        {taskList.title} ({taskList.items.length})
+        {taskList.title} {taskList.taskCount > 0 && `(${taskList.taskCount})`}
       </li>
       {isActive &&
-        taskList.items.filter(task => task.type !== "incomplete").map(task => (
-          <li
-            key={task.blockKey}
-            onClick={() => onTaskClick(task)}
-            className="task-item"
-            style={{
-              textDecoration: task.type === "cancelled" ? "line-through" : "",
-              fontWeight:
-                task.blockKey === topTask.blockKey ? "bold" : "inherit"
-            }}>
-            <span className="task-item--status">
-              <Checkbox
-                checked={task.type === "completed"}
-                disabled={task.type === "cancelled"}
-              />
-            </span>
-            <span>{task.text}</span>
-          </li>
-        ))}
+        taskList.items.filter(item => item.type !== "incomplete").map(
+          item =>
+            item.task ? (
+              <li
+                key={item.blockKey}
+                onClick={() => onTaskClick(item)}
+                className="task-list__task"
+                style={{
+                  textDecoration:
+                    item.type === "cancelled" ? "line-through" : "",
+                  fontWeight:
+                    item.blockKey === topTask.blockKey ? "bold" : "inherit"
+                }}>
+                <span className="task-item--status">
+                  <Checkbox
+                    checked={item.type === "completed"}
+                    disabled={item.type === "cancelled"}
+                  />
+                </span>
+                <span>{item.text}</span>
+              </li>
+            ) : (
+              <li className="task-list__item" key={item.blockKey}>
+                {item.text}
+              </li>
+            )
+        )}
     </ul>
   );
 };
